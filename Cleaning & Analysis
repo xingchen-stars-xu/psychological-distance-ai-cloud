@@ -1,0 +1,349 @@
+library(dplyr)
+library(forcats)
+library(psych) #factor analysis
+library(GPArotation) #factor rotation
+library(tidyverse) #data processing and ploting
+
+df <- read.csv("/Users/xuxingchen/Desktop/EGR 657 Survey_01_March 28, 2024_10.49.csv")
+#df <- df %>%
+  #mutate(Q54_1 = case_when(
+    #Q54_1 == "Strongly Disagree" ~ 1,
+    #Q54_1 == "Disagree" ~ 2,
+    #Q54_1 == "Neither agree nor disagree" ~ 3,
+    #Q54_1 == "Agree" ~ 4,
+    #Q54_1 == "Strongly Agree" ~ 4,
+    #TRUE ~ NA_real_ # This line handles cases that don't match any condition above
+  #))
+
+df <- df %>%
+  mutate(across(.cols = c(Q54_1:Q54_13, Q56_1:Q56_14, Q57_1:Q57_10, Q58_1:Q58_10), 
+                .fns = ~case_when(
+                  . == "Strongly Disagree" ~ 1,
+                  . == "Disagree" ~ 2,
+                  . == "Neither agree nor disagree" ~ 3,
+                  . == "Agree" ~ 4,
+                  . == "Strongly Agree" ~ 5,
+                  TRUE ~ NA_real_ # Handles cases that don't match any condition above
+                )))
+
+df <- df %>% select (- Q56_14, - Q64_1, -Q64_2)
+
+df <- df %>%
+  mutate(Q57_7 = if_else(is.na(Q57_7), mean(Q57_7, na.rm = TRUE), Q57_7)) %>%
+  mutate(Q57_8 = if_else(is.na(Q57_8), mean(Q57_8, na.rm = TRUE), Q57_8)) %>%
+  mutate(Q57_9 = if_else(is.na(Q57_9), mean(Q57_9, na.rm = TRUE), Q57_9)) %>%
+  mutate(Q57_10 = if_else(is.na(Q57_10), mean(Q57_10, na.rm = TRUE), Q57_10)) %>%
+  mutate(Q58_7 = if_else(is.na(Q58_7), mean(Q58_7, na.rm = TRUE), Q58_7)) %>%
+  mutate(Q58_8 = if_else(is.na(Q58_8), mean(Q58_8, na.rm = TRUE), Q58_8)) %>%
+  mutate(Q58_9 = if_else(is.na(Q58_9), mean(Q58_9, na.rm = TRUE), Q58_9)) %>%
+  mutate(Q58_10 = if_else(is.na(Q58_10), mean(Q58_10, na.rm = TRUE), Q58_10))
+
+df <- df %>% mutate(Race = case_when(
+  Q48 == "American Indian or Alaska Native,White" ~ "Others",
+  Q48 == "Asian,White" ~ "Others",
+  Q48 == "Asian,Native Hawaiian or Other Pacific Islander,Two or more races" ~ "Others",
+  Q48 == "Prefer to self-describe" ~ "Others",
+  Q48 == "White" ~ "White",
+  Q48 == "Asian" ~ "Asian",
+  Q48 == "Hispanic or Latino" ~ "Hispanic or Latino",
+  Q48 == "Prefer not to say" ~ "Prefer not to say"
+))
+
+df <- df %>%
+  mutate(Living = recode(Q53,
+                         'Prefer not to say' = 'Other',
+                         'Rural (Countryside or small town, sparsely populated area)' = 'Other'))
+
+df <- df %>%
+  mutate(Gender = recode(Q47,
+                         'Man,Non-binary' = 'Man',
+                         'Woman,Prefer to self-describe' = 'Woman'))
+
+df$First_gen <- as.factor(df$Q52)
+df$Race <- as.factor(df$Race)
+df$Major <- as.factor(df$Q49)
+df$Income <- as.factor(df$Q51)
+df$Living <- as.factor(df$Living)
+df$Gender <- as.factor(df$Gender)
+df$Age <- as.factor(df$Q46)
+df$Standing <- as.factor(df$Q50)
+
+df_temp <- df
+#write.csv(df,"/Users/xuxingchen/Desktop/EGR 657 Survey.csv") 
+
+
+#AI - 1
+data_AI <- df %>% select(Q54_1 : Q56_13)
+scree(data_AI,pc=F)
+fa.parallel(data_AI,fa="fa")
+fa_AI <-fa(data_AI, fm = "pa", nfactors = 2)
+fa.diagram(fa_AI)
+fa_AI$loadings
+print(fa_AI$loadings, cutoff=0.4, digits=3)
+
+# Drop Q54_12; Q56_3,6
+#AI - 2
+data_AI2 <- data_AI %>% select(-Q54_12, -Q56_3, -Q56_6)
+scree(data_AI2,pc=F)
+fa.parallel(data_AI2,fa="fa")
+fa_AI2 <-fa(data_AI2, fm = "pa", nfactors = 2)
+fa.diagram(fa_AI2)
+fa_AI2$loadings
+print(fa_AI2$loadings, cutoff=0.4, digits=3)
+
+# Drop Q56_5, Q54_13
+#AI - 3
+data_AI3 <- data_AI2 %>% select(-Q56_5, - Q54_13)
+scree(data_AI3,pc=F)
+fa.parallel(data_AI3,fa="fa")
+fa_AI3 <-fa(data_AI3, fm = "pa", nfactors = 2)
+fa.diagram(fa_AI3)
+fa_AI3$loadings
+print(fa_AI3$loadings, cutoff=0.4, digits=3)
+
+#CL - 1
+data_CL <- df %>% select(Q57_1 : Q58_10)
+scree(data_CL,pc=F)
+fa.parallel(data_CL,fa="fa")
+fa_CL <-fa(data_CL, fm = "pa", nfactors = 2)
+fa.diagram(fa_CL)
+fa_CL$loadings
+print(fa_CL$loadings, cutoff=0.4, digits=3)
+
+# Drop Q57_4,8,9; Q58_10
+
+#CL - 2
+data_CL2 <- data_CL %>% select(-Q57_4, -Q57_8, -Q57_9, -Q58_10)
+scree(data_CL2,pc=F)
+fa.parallel(data_CL2,fa="fa")
+fa_CL2 <-fa(data_CL2, fm = "pa", nfactors = 2)
+fa.diagram(fa_CL2)
+fa_CL2$loadings
+print(fa_CL2$loadings, cutoff=0.4, digits=3)
+
+# Drop Q57_2
+# CL - 3
+data_CL3 <- data_CL2 %>% select(-Q57_2)
+scree(data_CL3,pc=F)
+fa.parallel(data_CL3,fa="fa")
+fa_CL3 <-fa(data_CL3, fm = "pa", nfactors = 2)
+fa.diagram(fa_CL3)
+fa_CL3$loadings
+print(fa_CL3$loadings, cutoff=0.4, digits=3)
+
+#df %>% select(Standing) %>% group_by(Standing) %>% count(n())
+#
+df %>% select(Living) %>% group_by(Living) %>% count(n())
+df %>% select(Gender) %>% group_by(Gender) %>% count(n())
+df %>% select(Age) %>% group_by(Age) %>% count(n())
+df %>% select(Race) %>% group_by(Race) %>% count(n())
+df %>% select(Standing) %>% group_by(Standing) %>% count(n())
+df %>% select(Major) %>% group_by(Major) %>% count(n())
+
+###
+temp2 <- print(fa_CL3$loadings, cutoff=0.4, digits=3)
+temp2 <- as.numeric(print(fa_CL3$loadings, cutoff=0.4, digits=3))
+temp2 <- fa_CL3$loadings
+temp2 <- fa_CL3$loadings[,1]
+temp2
+temp2[temp2<0.4] <- 0
+temp3 <- data_CL3 %>% select(Q57_1:Q58_9)
+temp3 <- as.matrix(data_CL3 %>% select(Q57_1:Q58_9))
+temp2 <- matrix(temp2, nrow = length(temp2), ncol = 1)
+temp3 <- data.matrix(temp3)
+print(dim(temp3))
+print(dim(temp2))
+temp2 <- temp2/sum(temp2)
+result_Q58 <- temp3 %*% temp2
+
+temp2 <- print(fa_CL3$loadings, cutoff=0.4, digits=3)
+temp2 <- as.numeric(print(fa_CL3$loadings, cutoff=0.4, digits=3))
+temp2 <- fa_CL3$loadings
+temp2 <- fa_CL3$loadings[,2]
+temp2
+temp2[temp2<0.4] <- 0
+temp3 <- data_CL3 %>% select(Q57_1:Q58_9)
+temp3 <- as.matrix(data_CL3 %>% select(Q57_1:Q58_9))
+temp2 <- matrix(temp2, nrow = length(temp2), ncol = 1)
+temp3 <- data.matrix(temp3)
+print(dim(temp3))
+print(dim(temp2))
+temp2 <- temp2/sum(temp2)
+result_Q57 <- temp3 %*% temp2
+
+temp2 <- print(fa_AI3$loadings, cutoff=0.4, digits=3)
+temp2 <- as.numeric(print(fa_AI3$loadings, cutoff=0.4, digits=3))
+temp2 <- fa_AI3$loadings
+temp2 <- fa_AI3$loadings[,1]
+temp2
+temp2[temp2<0.4] <- 0
+temp3 <- data_AI3 %>% select(Q54_1:Q56_13)
+temp3 <- as.matrix(data_AI3 %>% select(Q54_1:Q56_13))
+temp2 <- matrix(temp2, nrow = length(temp2), ncol = 1)
+temp3 <- data.matrix(temp3)
+print(dim(temp3))
+print(dim(temp2))
+temp2 <- temp2/sum(temp2)
+result_Q56 <- temp3 %*% temp2
+
+temp2 <- print(fa_AI3$loadings, cutoff=0.4, digits=3)
+temp2 <- as.numeric(print(fa_AI3$loadings, cutoff=0.4, digits=3))
+temp2 <- fa_AI3$loadings
+temp2 <- fa_AI3$loadings[,2]
+temp2
+temp2[temp2<0.4] <- 0
+temp3 <- data_AI3 %>% select(Q54_1:Q56_13)
+temp3 <- as.matrix(data_AI3 %>% select(Q54_1:Q56_13))
+temp2 <- matrix(temp2, nrow = length(temp2), ncol = 1)
+temp3 <- data.matrix(temp3)
+print(dim(temp3))
+print(dim(temp2))
+temp2 <- temp2/sum(temp2)
+result_Q54 <- temp3 %*% temp2
+#Q54 - factor 1 AI
+pa2_loadings <- c(Q54_1 = 0.721, Q54_2 = 0.527, Q54_3 = 0.705, Q54_4 = 0.760, Q54_5 = 0.724,
+                  Q54_6 = 0.736, Q54_7 = 0.491, Q54_8 = 0.575, Q54_9 = 0.608, Q54_10 = 0.442, Q54_11 = 0.586)
+adjusted_df <- df
+for (q in names(pa2_loadings)) {
+  if(q %in% names(df)) {
+    adjusted_df[[q]] <- df[[q]] * pa2_loadings[q]
+  }
+}
+#Q56 - factor 1 Cloud computing
+pa1_loadings <- c(Q56_1 = 0.714, Q56_2 = 0.521, Q56_4 = 0.633, Q56_7 = 0.853, Q56_8 = 0.922,
+                  Q56_9 = 0.574, Q56_10 = 0.848, Q56_11 = 0.795, Q56_12 = 0.802, Q56_13 = 0.752)
+
+adjusted_df <- adjusted_df 
+for (q in names(pa1_loadings)) {
+  if (q %in% names(df)) {
+    adjusted_df[[q]] <- df[[q]] * pa1_loadings[q]
+  }
+}
+
+#Q56 - factor 2 AI
+pa3_loadings <- c(Q57_1 = 0.446, Q57_3 = 0.451, Q57_5 = 0.696, Q57_6 = 0.689,
+                  Q57_7 = 0.646, Q57_10 = 0.708)
+adjusted_df <- adjusted_df 
+for (q in names(pa3_loadings)) {
+  if (q %in% names(df)) {
+    adjusted_df[[q]] <- df[[q]] * pa3_loadings[q]
+  }
+}
+
+#Q58 - factor 2 Cloud Computing
+pa4_loadings <- c(Q58_1 = 0.899, Q58_2 = 0.885, Q58_3 = 0.603, Q58_4 = 0.788,
+Q58_5 = 0.689, Q58_6 = 0.671, Q58_7 = 0.570, Q58_8 = 0.783, Q58_9 = 0.758)
+
+adjusted_df <- adjusted_df 
+for (q in names(pa4_loadings)) {
+  if (q %in% names(df)) {
+    adjusted_df[[q]] <- df[[q]] * pa4_loadings[q]
+  }
+}
+
+adjusted_df <- adjusted_df %>% 
+  mutate(
+    FA1_AI = rowSums(select(., Q54_1, Q54_2, Q54_3, Q54_4, Q54_5, Q54_6, Q54_7, Q54_8, Q54_9, Q54_10, Q54_11), na.rm = TRUE),
+    FA2_AI = rowSums(select(., Q57_1, Q57_2, Q57_3, Q57_5, Q57_6, Q57_7, Q57_10), na.rm = TRUE),
+    FA1_CL = rowSums(select(., Q56_1, Q56_2, Q56_4, Q56_5, Q56_7, Q56_8, Q56_9, Q56_10, Q56_11, Q56_12, Q56_13), na.rm = TRUE),
+    FA2_CL = rowSums(select(., Q58_1, Q58_2, Q58_3, Q58_4, Q58_5, Q58_6, Q58_7, Q58_8, Q58_9), na.rm = TRUE)
+  )
+
+adjusted_df <- adjusted_df %>%
+  mutate(Standing = recode(Standing,
+                         'Freshman' = 'Undergraduate',
+                         'Sophomore' = 'Undergraduate',
+                         'Junior' = 'Undergraduate',
+                         'Senior' = 'Undergraduate'))
+
+adjusted_df$Gender <- factor(adjusted_df$Gender)
+adjusted_df$Age <- factor(adjusted_df$Age)
+adjusted_df$Standing <- factor(adjusted_df$Standing)
+adjusted_df$First_gen <- factor(adjusted_df$First_gen)
+adjusted_df$Race <- factor(adjusted_df$Race)
+adjusted_df$Major <- factor(adjusted_df$Major)
+adjusted_df$Living <- factor(adjusted_df$Living)
+
+largest_gender <- adjusted_df %>%
+  count(Gender) %>%
+  arrange(desc(n)) %>%
+  slice(1) %>%
+  .$Gender %>%  
+  as.character()
+
+largest_Age <- adjusted_df %>%
+  count(Age) %>%
+  arrange(desc(n)) %>%
+  slice(1) %>%
+  .$Age %>%  
+  as.character()
+
+largest_Standing <- adjusted_df %>%
+  count(Standing) %>%
+  arrange(desc(n)) %>%
+  slice(1) %>%
+  .$Standing %>%  
+  as.character()
+
+largest_First_gen <- adjusted_df %>%
+  count(First_gen) %>%
+  arrange(desc(n)) %>%
+  slice(1) %>%
+  .$First_gen %>%  
+  as.character()
+
+largest_Race <- adjusted_df %>%
+  count(Race) %>%
+  arrange(desc(n)) %>%
+  slice(1) %>%
+  .$Race %>%  
+  as.character()
+
+largest_Major <- adjusted_df %>%
+  count(Major) %>%
+  arrange(desc(n)) %>%
+  slice(1) %>%
+  .$Major %>%  
+  as.character()
+
+largest_Living <- adjusted_df %>%
+  count(Living) %>%
+  arrange(desc(n)) %>%
+  slice(1) %>%
+  .$Living %>%  
+  as.character()
+
+adjusted_df$Race <- relevel(adjusted_df$Race, ref = "White")
+adjusted_df$Gender <- fct_relevel(adjusted_df$Gender, largest_gender)
+adjusted_df$Age <- fct_relevel(adjusted_df$Age, largest_Age)
+adjusted_df$Standing <- fct_relevel(adjusted_df$Standing, largest_Standing)
+adjusted_df$First_gen <- fct_relevel(adjusted_df$First_gen, largest_First_gen)
+adjusted_df$Race <- fct_relevel(adjusted_df$Race, largest_Race)
+adjusted_df$Major <- fct_relevel(adjusted_df$Major, largest_Major)
+adjusted_df$Living <- fct_relevel(adjusted_df$Living, largest_Living)
+
+# For demo with Factor 1 AI
+model_demo1_A <- lm(result_Q54 ~ Gender + Age + Standing + First_gen + Race + Major +  Living, data = adjusted_df)
+model_demo1_A
+summary(model_demo1_A)
+# For demo with Factor 2 AI
+model_demo2_A <- lm(result_Q56  ~ Gender + Age + Standing + First_gen + Race + Major + Living, data = adjusted_df)
+model_demo2_A
+summary(model_demo2_A)
+# For demo with Factor 1 cloud computing
+model_demo1_C <- lm(result_Q57 ~ Gender + Age + Standing + First_gen + Race + Major + Living, data = adjusted_df)
+model_demo1_C
+summary(model_demo1_C)
+# For demo with Factor 2 cloud computing
+model_demo2_C <- lm(result_Q58  ~ Gender + Age + Standing + First_gen + Race + Major + Living, data = adjusted_df)
+model_demo2_C
+summary(model_demo2_C)
+lm(result_Q54  ~ Gender + Age + Standing + First_gen + Race + Major + Living, data = adjusted_df)
+lm(result_Q58  ~ Gender + Age + Standing + First_gen + Race + Major + Living, data = adjusted_df)
+
+adjusted_df %>% select(Living) %>% group_by(Living) %>% count(n())
+adjusted_df %>% select(Gender) %>% group_by(Gender) %>% count(n())
+adjusted_df %>% select(Age) %>% group_by(Age) %>% count(n())
+adjusted_df %>% select(Race) %>% group_by(Race) %>% count(n())
+adjusted_df %>% select(Standing) %>% group_by(Standing) %>% count(n())
+adjusted_df %>% select(Major) %>% group_by(Major) %>% count(n())
