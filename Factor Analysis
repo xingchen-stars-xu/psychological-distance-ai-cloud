@@ -1,0 +1,49 @@
+library(psych)
+library(GPArotation)
+library(tidyverse)
+
+data("bfi")
+
+bfi <- bfi %>% select(A1:O5) %>% drop_na
+glimpse(bfi)
+summary(bfi)
+
+temp <- cor(bfi)
+
+KMO(bfi)
+cortest.bartlett(bfi)
+
+scree(bfi, pc=F)
+fa.parallel(bfi, fa = "fa")
+
+fa <- fa(bfi, fm="pa", nfactors = 5)
+
+fa
+
+fa.diagram(fa)
+
+fa$communality
+
+fa$loadings
+print(fa$loadings, cutoff = 0.6, digits = 3)
+
+# start the new EFA analysis
+bfi<-bfi %>% select(-c(E4,E5,E3,C4,C5,A1,O5,O2))
+temp <- cor(bfi)
+
+KMO(bfi)
+cortest.bartlett(bfi)
+
+scree(bfi, pc=F)
+fa.parallel(bfi, fa = "fa")
+
+fa <- fa(bfi, fm="pa", nfactors = 5)
+
+fa
+
+fa.diagram(fa)
+
+fa$communality
+
+fa$loadings
+print(fa$loadings, cutoff = 0.6, digits = 3)
