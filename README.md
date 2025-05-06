@@ -64,7 +64,3 @@ This project investigates how university students perceive advanced technologies
 Xu, X., Dai, A., Wei, S., & Tan, L. (2024, October). WIP: Examining Psychological Distance Perceptions Towards Advanced Technologies among University Students. In 2024 IEEE Frontiers in Education Conference (FIE) (pp. 1-5). IEEE.
 
 ---
-
-## 📂 License
-
-This work is released under the MIT License. See [LICENSE](LICENSE) for details.
