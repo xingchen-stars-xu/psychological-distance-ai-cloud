@@ -7,8 +7,8 @@ This project investigates how university students perceive advanced technologies
 ## Research Goals
 
 1. **Measure** psychological distance across two dimensions:
-   - *Social distance*: “People like me use this.”
-   - *Hypothetical distance*: “I’ll use this soon.”
+   - *Social distance*: “I feel that the field of AI is accessible and open to people like me.”
+   - *Hypothetical distance*: “I feel informed about the latest developments and uses of AI in various fields.”
 
 2. **Identify** how student demographic factors (e.g., race, gender, major) influence perceived distance.
 
@@ -19,16 +19,15 @@ This project investigates how university students perceive advanced technologies
 ## Methodology
 
 - **Type**: Survey-based, theory-driven quantitative research  
-- **Participants**: 232 university students from diverse academic and demographic backgrounds  
+- **Participants**: 52 university students from diverse academic and demographic backgrounds  
 - **Instruments**:  
-  - 45-item Likert-scale survey  
+  - 46-item Likert-scale survey  
   - Constructs from **Construal Level Theory** (CLT) and **Technology Acceptance Model** (TAM)  
 
 - **Analysis Tools**:  
-  - R (tidyverse, psych, GPArotation)  
+  - R (dplyr, tidyverse, psych, GPArotation, forcats)  
   - Exploratory Factor Analysis  
   - Multiple Linear Regression  
-  - Data visualization and preprocessing via R and Qualtrics
 
 ---
 
@@ -36,26 +35,8 @@ This project investigates how university students perceive advanced technologies
 
 | File | Purpose |
 |------|---------|
-| `data_cleaning_and_preprocessing.R` | Recode and preprocess survey responses |
-| `efa_analysis.R` | Run factor analysis and extract reliable subscales |
-| `linear_modeling.R` | Model how demographics predict perceived tech distance |
-| `final_scoring.R` | Compute factor scores using weighted item loadings |
-
----
-
-## Key Findings
-
-- Students with different majors and racial/ethnic identities perceive AI and cloud tech differently.
-- Earlier exposure to tech via coursework or role models reduces psychological distance.
-- Factor analysis revealed consistent, interpretable structures across technology types.
-
----
-
-## Implications
-
-- **Equity-first design**: Consider identity-informed differences in perception and trust when designing tech tools or educational programs.
-- **Curriculum planning**: Introduce emerging tech early to normalize use and lower social distance barriers.
-- **UX strategy**: Psychological distance can be a valuable metric in assessing product readiness and messaging.
+| `Factor Analysis.R` | Run factor analysis and extract reliable subscales |
+| `Cleaning & Analysis.R` | Data clearning and regression analysis procedures |
 
 ---
 
